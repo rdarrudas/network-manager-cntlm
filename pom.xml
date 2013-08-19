@@ -47,7 +47,7 @@
         <developer>
             <id>rdarrudas</id>
             <name>Ronaldo Arrudas</name>
-            <email>rdarrudas@gmail</email>
+            <email>rdarrudas@gmail.com</email>
             <roles>
                 <role>Maintainer</role>
             </roles>
@@ -117,11 +117,14 @@
                             <target>
                                 <chmod perm="ugo+x">
                                     <fileset dir="${basedir}/target/deb">
-                                        <!-- <include name="**/bin/**" /> -->
-                                        <!-- <include name="**/sbin/**" /> -->
                                         <include name="etc/NetworkManager/dispatcher.d/*" />
                                         <include name="DEBIAN/post*" />
                                         <include name="DEBIAN/pre*" />
+                                    </fileset>
+                                </chmod>
+                                <chmod perm="go-w">
+                                    <fileset dir="${basedir}/target/deb">
+                                        <include name="**/*" />
                                     </fileset>
                                 </chmod>
                             </target>

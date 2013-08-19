@@ -3,7 +3,8 @@
 set -e
 
 case "$1" in
-  	remove)
+	remove)
+	    echo $1
 	;;
 esac
 exit 0
