@@ -1,0 +1,26 @@
+#!/bin/bash
+CONN=`nmcli -t -f NAME con status`
+CUSTOM_FILE="/etc/cntlm.conf.d/$CONN.conf"
+CONFIG_FILE="/etc/cntlm.conf"
+
+cat -> "$CONFIG_FILE" << EOF
+# Auto-generated cntlm.conf file
+# DO NOT CHANGE THIS FILE MANUALLY!!!
+#
+# See /etc/cntlm.conf.d/README for more information.
+#
+Listen 127.0.1.1:3128
+SOCKS5Proxy 127.0.1.1:3129
+EOF
+
+if [ -n "$CONN" -a -e "$CUSTOM_FILE" ]
+  then
+    grep -v Listen "$CUSTOM_FILE" >> "$CONFIG_FILE"
+    logger -i -p authpriv.notice "Activating CNTLM $CONN profile."
+  else
+    echo "Proxy no-proxy:3128" >> "$CONFIG_FILE"
+    echo "NoProxy *" >> "$CONFIG_FILE"
+    logger -i -p authpriv.notice "Activating CNTLM direct (non-proxied) profile."
+fi
+
+service cntlm restart

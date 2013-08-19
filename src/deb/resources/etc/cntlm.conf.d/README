@@ -1,0 +1,65 @@
+===================
+cntlm.conf.d README
+===================
+
+Basic usage
+-------------------
+This directory is part of a simple hack made to keep a vanilla CNTLM setup sync'ed
+with the current NetworkManager status.
+
+It's kinda simple: Just put here (in the directory you found this file) a text file,
+using a name like 'your-connection-on-nm.conf', containing the cntlm.conf config
+snippet specific to your domain, and voílà! Next time your network interface status
+change, the right cntlm.conf will be used!
+
+- "Cool, but wait.... How will I know the right name to use on this file?"
+Simple! Just run the command line below, and check:
+
+$ nmcli connection
+
+- "Nice, but I just want to know my current connection's name.... How do I?"
+Use this command, so:
+
+$ nmcli -t -f NAME connection status
+
+- "Yeah! Gotcha! But: how do I config the sanippet-like-file for my domain?"
+To be cristal clear, nothing like an example. Think we are working on a project at
+a client site, which is proxied. Think the IT staff granted us acces to their wifi,
+but hey: it has a proxy! No worries: let's just follow these few steps, and let the
+party begin:
+
+1. Connect to the network using nm-applet, as you normally do. If your network is an
+   Ethernet, give it a unique name (how? man nm-settings). For this example's sake,
+   let's say our network was named "Client Network" (w/o the quotes, obviously ¬¬).
+
+2. Create a file here (on this same directory, duh...) with the name of your network:
+
+$ vim /etc/cntlm.conf.d/Client\ Network.conf
+
+   [Did you notice that scaped space on the file name? Good boy.]
+
+3. On the file body, fill up the needed config (notice there's no 'Listen' keyword):
+#===================================================================================#
+| Username        yourusername
+| Domain          YOURDOMAIN
+| Auth            NTLM2SR
+| PassNTLMv2      18F337B0FED7D69B0BB52215E7D5FE29
+| Proxy           proxy.client.com:80
+| NoProxy         localhost, 127.0.0.*, 10.*, 192.168.*, 172.*
+|
+| -- INSERTING --
+#===================================================================================#
+   ["Dude, your vim mock-up rocks!" Thanks. Didn't get it? Read man cntlm.]
+
+4. Just reconnect your "Client Network" and browse.
+
+You are welcome.
+
+Technical stuff
+-------------------
+So you want to learn the magic? Don't worry: I'm a good guy, so I'll tell you:
+Look at the following script: /etc/NetworkManager/dispatcher.d/02cntlm
+
+It doesn't for you? Drop me a message at rdarrudas@gmail.com, and let's chat.
+
+Again, you are welcome.

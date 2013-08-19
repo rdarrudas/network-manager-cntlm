@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+    <modelVersion>4.0.0</modelVersion>
+    <!-- ################ -->
+    <!-- Address & layout -->
+    <!-- ################ -->
+    <groupId>org.github.rdarrudas</groupId>
+    <artifactId>network-manager-cntlm</artifactId>
+    <!-- FIXME: Check -SNAPSHOT debian attachment. -->
+    <version>0.1</version>
+    <packaging>jar</packaging>
+    <!-- ################### -->
+    <!-- General information -->
+    <!-- ################### -->
+    <name>NetworkManager and Cntlm integration (and automation)</name>
+    <description>
+ NetworkManager is a system network service that manages your network devices
+ and connections, attempting to keep active network connectivity when
+ available. It manages ethernet, WiFi, mobile broadband (WWAN), and PPPoE
+ devices, and provides VPN integration with a variety of different VPN
+ services.
+ .
+ Cntlm is a fast and efficient NTLM proxy, with support for TCP/IP tunneling,
+ authenticated connection caching, ACLs, proper daemon logging and behaviour
+ and much more. It has up to ten times faster responses than similar NTLM
+ proxies, while using by orders or magnitude less RAM and CPU.
+ .
+ This package provides a NetworkManager dispatcher for Cntlm, providing
+ up-to-date proxy settings even when changing network connections.</description>
+    <url>https://github.com/rdarrudas/network-manager-cntlm</url>
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE - version 2.1</name>
+            <url>http://www.gnu.org/old-licenses/lgpl-2.1-standalone.html</url>
+        </license>
+    </licenses>
+    <inceptionYear>2013</inceptionYear>
+    <!-- ################### -->
+    <!-- Team & Stakeholders -->
+    <!-- ################### -->
+    <developers>
+        <developer>
+            <id>rdarrudas</id>
+            <name>Ronaldo Arrudas</name>
+            <email>rdarrudas@gmail</email>
+            <roles>
+                <role>Maintainer</role>
+            </roles>
+            <timezone>-3</timezone>
+        </developer>
+    </developers>
+    <!-- ############### -->
+    <!-- Technical stuff -->
+    <!-- ############### -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <prerequisites>
+        <maven>3.1</maven>
+    </prerequisites>
+    <scm>
+        <url>https://github.com/rdarrudas/network-manager-cntlm</url>
+        <connection>scm:git:https://github.com/rdarrudas/network-manager-cntlm</connection>
+        <developerConnection>scm:git:git@github.com:rdarrudas/network-manager-cntlm.git</developerConnection>
+    </scm>
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/rdarrudas/network-manager-cntlm/issues</url>
+    </issueManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>copy-deb-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <overwrite>true</overwrite>
+                            <outputDirectory>${basedir}/target/deb</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/deb/resources</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>src/deb/scripts</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- This plugin's configuration must come *after* the Maven Resources Plugin, and *before* the Debian Maven Plugin. -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>fix-permissions</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <chmod perm="ugo+x">
+                                    <fileset dir="${basedir}/target/deb">
+                                        <!-- <include name="**/bin/**" /> -->
+                                        <!-- <include name="**/sbin/**" /> -->
+                                        <include name="etc/NetworkManager/dispatcher.d/*" />
+                                        <include name="DEBIAN/post*" />
+                                        <include name="DEBIAN/pre*" />
+                                    </fileset>
+                                </chmod>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.sf.debian-maven</groupId>
+                <artifactId>debian-maven-plugin</artifactId>
+                <version>1.0.5</version>
+                <executions>
+                    <execution>
+                        <id>debian-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <excludeAllArtifacts>true</excludeAllArtifacts>
+                            <excludeAllDependencies>true</excludeAllDependencies>
+                            <includeAttachedArtifacts>false</includeAttachedArtifacts>
+                            <packageDependencies>
+                                <packageDependency>libnm-util2</packageDependency>
+                                <packageDependency>cntlm</packageDependency>
+                            </packageDependencies>
+                            <repositoryBranch>raring</repositoryBranch>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.3.1</version>
+                <executions>
+                    <execution>
+                        <id>debian-install</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <classifier>1_all</classifier>
+                            <packaging>deb</packaging>
+                            <!-- FIXME: Check -SNAPSHOT debian attachment. -->
+                            <file>target/${project.artifactId}_${project.version}-1_all.deb</file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-resources-plugin</artifactId>
+                                        <versionRange>[2.3,)</versionRange>
+                                        <goals>
+                                            <goal>copy-resources</goal>
+                                            <goal>testResources</goal>
+                                            <goal>resources</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
